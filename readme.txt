@@ -11,20 +11,20 @@ PayHub's plugin for WooCommerce shopping cart.  This plugin allows you to proces
 
 
 == Installation ==
-(this assumes you have woocommerce shopping cart installed)
+*(this assumes you have woocommerce shopping cart installed)
 1. Download the zip file.
-2. Place the zip file in the '/wp-content/plugins/' directory.
-3. Either unzip the contents of the zip file in the directory or install the plugin through wordpress.
-4. Once the plugin is installed, click on woocommerce settings.
-5. Click on the payment tab.
-6. Select PayHub as the payment processor and click on payhub.
-7. Enter in the API credentials (username, password, and terminal id).  Use your current organization id.
+1. Place the zip file in the '/wp-content/plugins/' directory.
+1. Either unzip the contents of the zip file in the directory or install the plugin through wordpress.
+1. Once the plugin is installed, click on woocommerce settings.
+1. Click on the payment tab.
+1. Select PayHub as the payment processor and click on payhub.
+1. Enter in the API credentials (username, password, and terminal id).  Use your current organization id.
 
-== How to find your API credentials ==
+* How to find your API credentials
 1. Log into PayHub's Virtual Terminal
-2. Click on Admin
-3. Under General heading, click on 3rd Party API.
-4. Copy down your Username, Password, and Terminal ID.  Please note the username and password is case sensitive.
+1. Click on Admin
+1. Under General heading, click on 3rd Party API.
+1. Copy down your Username, Password, and Terminal ID.  Please note the username and password is case sensitive.
 
 
 If you have any questions you can contact payhub at:
