@@ -13,7 +13,7 @@ add_action('plugins_loaded', 'woocommerce_payhub_init', 0);
 
 	function woocommerce_payhub_init() {
 
-		if ( ! class_exists( 'woocommerce_payment_gateway' ) ) { return; }
+		if ( !class_exists( 'WC_Payment_Gateway' ) ) { return; }
 
 		require_once(WP_PLUGIN_DIR . "/" . plugin_basename( dirname(__FILE__)) . '/class/payhubTransaction.class.php');
 
@@ -106,7 +106,7 @@ add_action('plugins_loaded', 'woocommerce_payhub_init', 0);
 								'title' => __( 'Title', 'woothemes' ), 
 								'type' => 'text', 
 								'description' => __( 'This controls the title which the user sees during checkout.', 'woothemes' ), 
-								'default' => __( 'Credit Card / Debit Card', 'woothemes' ),
+								'default' => __( 'PayHub, Inc', 'woothemes' ),
 							), 
 				'enabled' => array(
 								'title' => __( 'Enable/Disable', 'woothemes' ), 
@@ -348,9 +348,9 @@ add_action('plugins_loaded', 'woocommerce_payhub_init', 0);
 
 	}
 }
-		function add_payhub_gateway( $methods ) {
+		function woocommerce_add_payhub_gateway( $methods ) {
 			$methods[] = 'WC_PayHub_Gateway';
 			return $methods;
 		}
-		add_filter('woocommerce_payment_gateways', 'add_payhub_gateway');
+		add_filter('woocommerce_payment_gateways', 'woocommerce_add_payhub_gateway');
 		
