@@ -3,7 +3,7 @@
 Plugin Name: WooCommerce PayHub Gateway Plugin
 Plugin URI: http://payhub.com/wiki
 Description: PayHub Inc. is a technology company that provides SAAS solutions and products that facilitate payment processing across a wide range of industries and devices.  We are a San Francisco Bay Area company, headquartered in San Rafael, California. We are a team of professionals with more than 35 years of combined electronic payment and financial industry and high tech expertise.
-Version: 1.0.0
+Version: 1.0.1
 Author: EJ
 
 */
@@ -13,7 +13,7 @@ add_action('plugins_loaded', 'woocommerce_payhub_init', 0);
 
 	function woocommerce_payhub_init() {
 
-		if ( !class_exists( 'WC_Payment_Gateway' ) ) { return; }
+		if ( ! class_exists( 'WC_Payment_Gateway' ) ) { return; }
 
 		require_once(WP_PLUGIN_DIR . "/" . plugin_basename( dirname(__FILE__)) . '/class/payhubTransaction.class.php');
 
@@ -58,7 +58,7 @@ add_action('plugins_loaded', 'woocommerce_payhub_init', 0);
 				$this->id				= 'payhub';
 				$this->method_title 	= __('PayHub', 'woothemes');
 				$this->icon 			= WP_PLUGIN_URL . "/" . plugin_basename( dirname(__FILE__)) . '/PoweredbyPayHubCards.png';
-				$this->has_fields 		= false;
+				$this->has_fields 		= true;
 				
 				// Load the form fields
 				$this->init_form_fields();
@@ -78,7 +78,7 @@ add_action('plugins_loaded', 'woocommerce_payhub_init', 0);
 
 				// Hooks
 				add_action( 'admin_notices', array( &$this, 'ssl_check') );
-				add_action( 'woocommerce_update_options_payment_gateways', array( &$this, 'process_admin_options' ) );
+				add_action( 'woocommerce_update_options_payment_gateways_' . $this->id, array( $this, 'process_admin_options') );
 				add_action( 'woocommerce_thankyou_cheque', array(&$this, 'thankyou_page' ));
 			}
 
@@ -143,7 +143,7 @@ add_action('plugins_loaded', 'woocommerce_payhub_init', 0);
 								'title' => __( 'Terminal ID', 'woothemes' ),
 								'type' => 'text',
 								'description' => __( 'Get your terminal ID from PayHub.', 'woothemes' ),
-								'default' => '000'
+								'default' => '0000'
 							)
 				);
 	    }
@@ -277,7 +277,7 @@ add_action('plugins_loaded', 'woocommerce_payhub_init', 0);
 
 
 		function process_payment( $order_id ) {
-			
+			global $woocommerce;
 			$order = new WC_Order( $order_id );
 
 			try {
@@ -306,16 +306,14 @@ add_action('plugins_loaded', 'woocommerce_payhub_init', 0);
 					"billing_zip" => $order->billing_postcode,
 					"note" => $order_id . ", " . $order->user_id
 				));
+  
+
 				
 			} catch(Exception $error_message) {
-				#$woocommerce->add_error(__('There was a connection error', 'woothemes') . ': "' . $e->result_text . '"');
-				$woocommerce->add_error(__('There was a connection error', 'woothemes') . $error_message);
-				return;
 				}
 
-			
 			if ($wooresponse->result_text == "SUCCESS") :
-				
+
 				$order->add_order_note( __('Transaction completed', 'woothemes') . ' (PayHub Transaction ID: ' . $wooresponse->transaction_id);
 				
 				//$order->payment_complete();
@@ -334,12 +332,16 @@ add_action('plugins_loaded', 'woocommerce_payhub_init', 0);
 					);
 
 			else :
-				$order->update_status('failed');
-				unset($_SESSION);
-				return array(
-					'result' => 'success',
-					'redirect'	=> add_query_arg('order', $order_id, get_permalink(get_option('woocommerce_view_order_page_id')))
-					);
+				$woocommerce->add_error(__('Payment Error:  ', 'woothemes') . $wooresponse->result_text);
+				$woocommerce->add_error(__('Payment Error:  ', 'woothemes') . $wooresponse->response_code);
+				
+				return;
+				//$order->update_status('failed');
+				//unset($_SESSION);
+				//return array(
+				//	'result' => 'success',
+				//	'redirect'	=> add_query_arg('order', $order, get_permalink(get_option('woocommerce_view_order_page_id')))
+				//	);
 			endif;
 
 			
