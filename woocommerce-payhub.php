@@ -3,7 +3,7 @@
 Plugin Name: WooCommerce PayHub Gateway Plugin
 Plugin URI: http://payhub.com/wiki
 Description: PayHub Inc. is a technology company that provides SAAS solutions and products that facilitate payment processing across a wide range of industries and devices.  We are a San Francisco Bay Area company, headquartered in San Rafael, California. We are a team of professionals with more than 35 years of combined electronic payment and financial industry and high tech expertise.
-Version: 1.0.1
+Version: 1.0.2
 Author: EJ
 
 */
@@ -334,14 +334,7 @@ add_action('plugins_loaded', 'woocommerce_payhub_init', 0);
 			else :
 				$woocommerce->add_error(__('Payment Error:  ', 'woothemes') . $wooresponse->result_text);
 				$woocommerce->add_error(__('Payment Error:  ', 'woothemes') . $wooresponse->response_code);
-				
 				return;
-				//$order->update_status('failed');
-				//unset($_SESSION);
-				//return array(
-				//	'result' => 'success',
-				//	'redirect'	=> add_query_arg('order', $order, get_permalink(get_option('woocommerce_view_order_page_id')))
-				//	);
 			endif;
 
 			

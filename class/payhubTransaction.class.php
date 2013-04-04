@@ -497,6 +497,8 @@ class payhubTransaction
       if($response_obj->RESPONSE_CODE == $success_code) $response->result = 0; else $response->result_text = $response_obj->RESPONSE_CODE;
 
       //most other response fields can be returned as is, just make it easier to understand and access them.
+			
+			$response->response_code = $response_obj->RESPONSE_CODE;
       $response->result_text = $response_obj->RESPONSE_TEXT;
       $response->transaction_id = $response_obj->TRANSACTION_ID;
       $response->batch_id = $response_obj->BATCH_ID;
