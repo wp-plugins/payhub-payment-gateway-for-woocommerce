@@ -449,7 +449,7 @@ class payhubTransaction
 
       /** encode data packet **/
       #print_r($data_to_send);
-      $data_to_send = json_encode($data_to_send, JSON_UNESCAPED_SLASHES);
+      $data_to_send = json_encode($data_to_send);
 
       
 
