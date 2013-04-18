@@ -3,7 +3,7 @@
 Plugin Name: WooCommerce PayHub Gateway Plugin
 Plugin URI: http://payhub.com/wiki
 Description: PayHub Inc. is a technology company that provides SAAS solutions and products that facilitate payment processing across a wide range of industries and devices.  We are a San Francisco Bay Area company, headquartered in San Rafael, California. We are a team of professionals with more than 35 years of combined electronic payment and financial industry and high tech expertise.
-Version: 1.0.2
+Version: 1.0.3
 Author: EJ
 
 */
