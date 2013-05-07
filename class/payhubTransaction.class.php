@@ -541,7 +541,7 @@ class payhubTransaction
       }
       else
       {
-         return "Invalid State.";
+         return NULL;
       }
    }
 
