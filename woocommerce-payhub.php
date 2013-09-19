@@ -3,7 +3,7 @@
 Plugin Name: WooCommerce PayHub Gateway Plugin
 Plugin URI: http://payhub.com/wiki
 Description: PayHub Inc. is a technology company that provides SAAS solutions and products that facilitate payment processing across a wide range of industries and devices.  We are a San Francisco Bay Area company, headquartered in San Rafael, California. We are a team of professionals with more than 35 years of combined electronic payment and financial industry and high tech expertise.
-Version: 1.0.6
+Version: 1.0.7
 Author: EJ
 
 */
@@ -15,7 +15,7 @@ add_action('plugins_loaded', 'woocommerce_payhub_init', 0);
 
 		if ( ! class_exists( 'WC_Payment_Gateway' ) ) { return; }
 
-		require_once(WP_PLUGIN_DIR . "/" . plugin_basename( dirname(__FILE__)) . '/class/payhubTransaction.class.php');
+		//require_once(WP_PLUGIN_DIR . "/" . plugin_basename( dirname(__FILE__)) . '/class/payhubTransaction.class.php');
 
 		/**
 	 	* Gateway class
@@ -45,6 +45,7 @@ add_action('plugins_loaded', 'woocommerce_payhub_init', 0);
 			var $api_username;
 			var $api_password;
 			var $orgid;
+			var $demo;
 			var $terminal_id;
 			var $card_data;
 			var $card_cvv;
@@ -55,10 +56,10 @@ add_action('plugins_loaded', 'woocommerce_payhub_init', 0);
 
 			function __construct() { 
 				
-				$this->id				= 'payhub';
+				$this->id	= 'payhub';
 				$this->method_title 	= __('PayHub', 'woothemes');
-				$this->icon 			= WP_PLUGIN_URL . "/" . plugin_basename( dirname(__FILE__)) . '/PoweredbyPayHubCards.png';
-				$this->has_fields 		= true;
+				$this->icon = WP_PLUGIN_URL . "/" . plugin_basename( dirname(__FILE__)) . '/PoweredbyPayHubCards.png';
+				$this->has_fields = true;
 				
 				// Load the form fields
 				$this->init_form_fields();
@@ -69,6 +70,7 @@ add_action('plugins_loaded', 'woocommerce_payhub_init', 0);
 				// Get setting values
 				$this->title 			= $this->settings['title'];
 				$this->description 		= $this->settings['description'];
+				$this->demo = $this->settings['demo'];
 				$this->enabled 			= $this->settings['enabled'];
 				$this->api_username 	= $this->settings['api_username'];
 				$this->api_password 	= $this->settings['api_password'];
@@ -114,7 +116,14 @@ add_action('plugins_loaded', 'woocommerce_payhub_init', 0);
 								'type' => 'checkbox', 
 								'description' => '', 
 								'default' => 'no'
-							), 
+							),
+				'demo' => array(
+								'title' => __( 'PayHub Demo', 'woothemes' ), 
+								'label' => __( 'Enable Demo Mode', 'woothemes' ), 
+								'type' => 'checkbox',  
+								'description' => __('This turns on Demo Mode, where all transactions will go to our demo server.  While this mode is on, you can use any credit card number, but must use the following CVVs for the following card types.  VISA = 999, Mastercard = 998, AMEX = 9997, and Discover/Diners = 996', 'woothemes'), 
+								'default' => 'no'
+							),
 				'description' => array(
 								'title' => __( 'Description', 'woothemes' ), 
 								'type' => 'text', 
@@ -167,51 +176,62 @@ add_action('plugins_loaded', 'woocommerce_payhub_init', 0);
 		     * Payment form on checkout page
 		     */
 			function payment_fields() {
+				if ( $description = $this->get_description() )
+					echo wpautop( wptexturize( $description ) );
+				if ( $this->supports( 'default_credit_card_form' ) )
+					echo $this->credit_card_form();
+
 				global $woocommerce;
-				?>
-				<?php if ($this->description) : ?><p><?php echo $this->description; ?></p><?php endif; ?>
 
-				<fieldset>
-					<p class="form-row form-row-first">
-						<label for="card_number"><?php echo __("Credit Card number", 'woocommerce') ?> <span class="required">*</span></label>
-						<input type="text" class="input-text" name="card_number" />
-					</p>
-					<div class="clear"></div>
-					<p class="form-row form-row-first">
-						<label for="cc_exp_month"><?php echo __("Expiration date", 'woocommerce') ?> <span class="required">*</span></label>
-						<select name="card_exp_month" id="cc_exp_month">
-							<option value=""><?php _e('Month', 'woocommerce') ?></option>
-							<?php
-								$months = array();
-								for ($i = 1; $i <= 12; $i++) {
-								    $timestamp = mktime(0, 0, 0, $i, 1);
-								    $months[date('m', $timestamp)] = date('F', $timestamp);
-								}
-								foreach ($months as $num => $name) {
-						            printf('<option value="%s">%s</option>', $num, $name);
-						        }
-						        
-							?>
-						</select>
-						<select name="card_exp_year" id="cc_exp_year">
-							<option value=""><?php _e('Year', 'woocommerce') ?></option>
-							<?php
-								$years = array();
-								for ($i = date('Y'); $i <= date('Y') + 15; $i++) {
-								    printf('<option value="%u">%u</option>', $i, $i);
-								}
-							?>
-						</select>
-					</p>
-					<p class="form-row form-row-last">
-						<label for="card_cvv"><?php _e("Card security code", 'woocommerce') ?> <span class="required">*</span></label>
-						<input type="text" class="input-text" id="cc_cvv" name="card_cvv" maxlength="4" style="width:45px" />
-						<span class="help payhub_card_cvv_description"></span>
-					</p>
-					<div class="clear"></div>
-				</fieldset>
+        $month_select = "";
+        for ($i=0; $i < 12; $i++){
+            $month = sprintf('%02d', $i+1);
+            if($month == date('m'))
+                $select = 'selected ';
+            else
+                $select = '';
+            $month_select .= "<option value='" . $month . "' " . $select . ">" . $month . "</option>\n";
+        }    
+        
+        // create options for valid from and expires on years
+        $year_now = date('y');
+        $year_select = "";
 
-				<?php
+        for($y = $year_now; $y < $year_now + 15; $y++){
+            $year = sprintf('%02d', $y);
+            $year_select .= "<option value='" . $year . "' " . $select . ">" . $year . "</option>\n";
+        }
+        ?>
+
+					<fieldset>
+						<p class="form-row form-row-first">
+							<label for="card_number"><?php echo __("Credit Card number", 'woocommerce') ?> <span class="required">*</span></label>
+							<input type="text" class="input-text" name="card_number" />
+						</p>
+						<div class="clear"></div>
+						<p class="form-row form-row-first">
+							<label for="cc_exp_month"><?php echo __("Expiration date", 'woocommerce') ?> <span class="required">*</span></label>
+							<select name="card_exp_month" id="cc_exp_month">
+								<?php echo $month_select; ?>
+							</select>
+							<select name="card_exp_year" id="cc_exp_year">
+								<?php echo $year_select; ?>
+							</select>
+						</p>
+						<p class="form-row form-row-last">
+							<label for="card_cvv"><?php _e("Card security code", 'woocommerce') ?> <span class="required">*</span></label>
+							<input type="text" class="input-text" id="cc_cvv" name="card_cvv" maxlength="4" style="width:45px" />
+							<span class="help payhub_card_cvv_description"></span>
+						</p>
+						<div class="clear"></div>
+					</fieldset>
+
+					<?php
+				
+				function supports( $feature ) {
+					return apply_filters( 'woocommerce_payment_gateway_supports', in_array( $feature, $this->supports) ? true : false, $feature, $this);
+				}
+
 			}
 
 
@@ -280,42 +300,72 @@ add_action('plugins_loaded', 'woocommerce_payhub_init', 0);
 			global $woocommerce;
 			$order = new WC_Order( $order_id );
 
-			try {
-				//set credentials for transaction
-				payhubTransaction::setCredentials($this->orgid, $this->api_username, $this->api_password);
-				payhubTransaction::setTerminalId($this->tid);
-				payhubTransaction::setDebug(true);
+			$mode = $this->demo;
+			$post_url = "https://checkout.payhub.com/invoice/transaction";
 
-				var_dump($order->billing_state);
-				
-				$wooresponse = payhubTransaction::sale(array(
-					"payment_type" => "credit",
-					"card_data_type" => "pan",
-					"card_data" => $_POST['card_number'],
-					"card_exp_month" => $_POST['card_exp_month'],
-					"card_exp_year" => $_POST['card_exp_year'],
-					"card_cvv" => $_POST['card_cvv'],
-					"amount" => $order->order_total,
-					"cust_first_name" => $order->billing_first_name,
-					"cust_last_name" => $order->billing_last_name,
-					"cust_email" => $order->billing_email,
-					"cust_phone" => $order->billing_phone,
-					"billing_address1" => $order->billing_address_1,
-					"billing_address2" => $order->billing_address_2,
-					"billing_city" => $order->billing_city,
-					"billing_state" => $order->billing_state,
-					"billing_zip" => $order->billing_postcode,
-					"note" => $order_id . ", " . $order->user_id
-				));
-  
+			if ($mode == "yes"){
+				$mode = "demo";
+			}else{
+				$mode = "live";
+			}
 
-				
-			} catch(Exception $error_message) {
-				}
+			$post_data = array(
+				'mode' => $mode,
+				'orgid' => $this->orgid,
+				'username' => $this->api_username,
+				'password' => $this->api_password,
+				'tid' => $this->tid,
+				'first_name' => $order->billing_first_name,
+				'last_name' => $order->billing_last_name,
+				'phone' => $order->billing_phone,
+				'email' => $order->billing_email,
+				'address1' => $order->billing_address_1,
+				'address2' => $order->billing_address_2,
+				'city' => $order->billing_city,
+				'state' => $order->billing_state,
+				'zip' => $order->billing_postcode,
+				'note' => $order_id . ", " . $order->user_id,
+				'cc' => $_POST['card_number'],
+				'month' => $_POST['card_exp_month'],
+				'year' => $_POST['card_exp_year'],
+				'cvv' => $_POST['card_cvv'],
+				'amount' => $order->order_total,
+				'ship_to_name' => $order->billing_first_name . $order->billing_last_name,
+				'ship_address1' => $order->shipping_address_1,
+				'ship_address2' => $order->shipping_address_2,
+				'ship_city' => $order->shipping_city,
+				'ship_state' => $order->shipping_state,
+				'ship_zip' => $order->shipping_postcode
+				);
 
-			if ($wooresponse->result_text == "SUCCESS") :
+		  $post_fields = json_encode($post_data);
+		  //var_dump($submit_data);
+		  //var_dump($post_url);
+		  // Setup the cURL request.
+		  $ch = curl_init();
+		  $c_opts = array(
+		  								CURLOPT_URL => $post_url,
+		                  CURLOPT_VERBOSE => 0,
+		                  CURLOPT_SSL_VERIFYHOST => 0,
+		                  CURLOPT_SSL_VERIFYPEER => false,
+		                  CURLOPT_CAINFO => "",
+		                  CURLOPT_HTTPHEADER => array('Content-Type: application/json'),
+		                  CURLOPT_RETURNTRANSFER => true,
+		                  CURLOPT_POST => true,
+		                  CURLOPT_POSTFIELDS => $post_fields);
 
-				$order->add_order_note( __('Transaction completed', 'woothemes') . ' (PayHub Transaction ID: ' . $wooresponse->transaction_id);
+		  curl_setopt_array($ch, $c_opts);
+		  $raw = curl_exec($ch);
+
+		  curl_close($ch);
+
+		  $wooresponse = json_decode($raw, true);
+
+			
+
+			if ($wooresponse['RESPONSE_TEXT'] == "SUCCESS") :
+
+				$order->add_order_note( __('Transaction completed', 'woothemes') . ' (PayHub Transaction ID: ' . $wooresponse['TRANSACTION_ID']);
 				
 				//$order->payment_complete();
 				$order->payment_complete();
@@ -335,10 +385,10 @@ add_action('plugins_loaded', 'woocommerce_payhub_init', 0);
 
 			else :
 				$order->update_status('failed');
-				$woocommerce->add_error(__('Payment Error:  ', 'woothemes') . $wooresponse->result_text);
-				$woocommerce->add_error(__('Payment Error:  ', 'woothemes') . $wooresponse->response_code);
-				$order->add_order_note( __('Transaction Failed', 'woothemes') . ' (PayHub Response Code: ' . $wooresponse->response_code);
-				$order->add_order_note( __('Transaction Failed', 'woothemes') . ' (Failed due to: ' . $wooresponse->result_text);
+				$woocommerce->add_error(__('Payment Error:  ', 'woothemes') . $wooresponse['RESPONSE_TEXT']);
+				$woocommerce->add_error(__('Payment Error:  ', 'woothemes') . $wooresponse['RESPONSE_CODE']);
+				$order->add_order_note( __('Transaction Failed', 'woothemes') . ' (PayHub Response Code: ' . $wooresponse['RESPONSE_CODE']);
+				$order->add_order_note( __('Transaction Failed', 'woothemes') . ' (Failed due to: ' . $wooresponse['RESPONSE_TEXT']);
 				return;
 			endif;
 
