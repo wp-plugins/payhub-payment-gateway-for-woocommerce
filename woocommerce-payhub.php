@@ -3,7 +3,7 @@
 Plugin Name: WooCommerce PayHub Gateway Plugin
 Plugin URI: http://payhub.com/wiki
 Description: PayHub Inc. is a technology company that provides SAAS solutions and products that facilitate payment processing across a wide range of industries and devices.  We are a San Francisco Bay Area company, headquartered in San Rafael, California. We are a team of professionals with more than 35 years of combined electronic payment and financial industry and high tech expertise.
-Version: 1.0.7
+Version: 1.0.8
 Author: EJ
 
 */
@@ -202,33 +202,29 @@ add_action('plugins_loaded', 'woocommerce_payhub_init', 0);
             $year_select .= "<option value='" . $year . "' " . $select . ">" . $year . "</option>\n";
         }
         ?>
-        	<table style="width: 75%">
-        	<tbody>
-        		<tr>
-							<td><label for="card_number"><?php echo __("Credit Card number", 'woocommerce') ?> <span class="required">*</span></label></td>
-							<td><input type="text" class="input-text" name="card_number" /></td>
-						</tr>
-						<tr>
-							<td><label for="cc_exp_month"><?php echo __("Expiration date", 'woocommerce') ?> <span class="required">*</span></label></td>
-							<td>
-								  <select name="card_exp_month" id="cc_exp_month">
-										<?php echo $month_select; ?>
-									</select>
-									  <?php echo " / " ?>
-									<select name="card_exp_year" id="cc_exp_year">
-										<?php echo $year_select; ?>
-									</select>
-							</td>
-						</tr>
-						<tr>
-						  <td><label for="card_cvv"><?php _e("Card security code", 'woocommerce') ?> <span class="required">*</span></label></td>
-							<td><input type="text" class="input-text" id="cc_cvv" name="card_cvv" maxlength="4" style="width:45px" /></td>
-							<td><span class="help payhub_card_cvv_description"></span></td>
-						</tr>
-					</tbody>
-				</table>
-				<div class="clear"></div>
-				
+
+					<fieldset>
+						<p class="form-row form-row-first">
+							<label for="card_number"><?php echo __("Credit Card number", 'woocommerce') ?> <span class="required">*</span></label>
+							<input type="text" class="input-text" name="card_number" />
+						</p>
+						<div class="clear"></div>
+						<p class="form-row form-row-first">
+							<label for="cc_exp_month"><?php echo __("Expiration date", 'woocommerce') ?> <span class="required">*</span></label>
+							<select name="card_exp_month" id="cc_exp_month">
+								<?php echo $month_select; ?>
+							</select>
+							<select name="card_exp_year" id="cc_exp_year">
+								<?php echo $year_select; ?>
+							</select>
+						</p>
+						<p class="form-row form-row-last">
+							<label for="card_cvv"><?php _e("Card security code", 'woocommerce') ?> <span class="required">*</span></label>
+							<input type="text" class="input-text" id="cc_cvv" name="card_cvv" maxlength="4" style="width:45px" />
+							<span class="help payhub_card_cvv_description"></span>
+						</p>
+						<div class="clear"></div>
+					</fieldset>
 
 					<?php
 				
