@@ -344,11 +344,10 @@ add_action('plugins_loaded', 'woocommerce_payhub_init', 0);
 		  // Setup the cURL request.
 		  $ch = curl_init();
 		  $c_opts = array(
-		  								CURLOPT_URL => $post_url,
+		  				  CURLOPT_URL => $post_url,
 		                  CURLOPT_VERBOSE => 0,
 		                  CURLOPT_SSL_VERIFYHOST => 0,
-		                  CURLOPT_SSL_VERIFYPEER => false,
-		                  CURLOPT_CAINFO => "",
+		                  CURLOPT_SSL_VERIFYPEER => true,
 		                  CURLOPT_HTTPHEADER => array('Content-Type: application/json'),
 		                  CURLOPT_RETURNTRANSFER => true,
 		                  CURLOPT_POST => true,
@@ -363,7 +362,7 @@ add_action('plugins_loaded', 'woocommerce_payhub_init', 0);
 
 			
 
-			if ($wooresponse['RESPONSE_TEXT'] == "SUCCESS") :
+			if ($wooresponse['RESPONSE_CODE'] == "00") :
 
 				$order->add_order_note( __('Transaction completed', 'woothemes') . ' (PayHub Transaction ID: ' . $wooresponse['TRANSACTION_ID']);
 				
@@ -380,8 +379,9 @@ add_action('plugins_loaded', 'woocommerce_payhub_init', 0);
 				// Return thank you page redirect
 				return array(
 					'result' 	=> 'success',
-					'redirect'	=> add_query_arg('key', $order->order_key, add_query_arg('order', $order_id, get_permalink(get_option('woocommerce_thanks_page_id'))))
-					);
+					#'redirect'	=> add_query_arg('key', $order->order_key, add_query_arg('order', $order_id, get_permalink(get_option('woocommerce_thanks_page_id'))))
+					'redirect' => $this->get_return_url($order)
+				);
 
 			else :
 				$order->update_status('failed');
