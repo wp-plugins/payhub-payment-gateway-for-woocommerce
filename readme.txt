@@ -3,7 +3,7 @@ Contributors: PayHub
 Website: http://payhub.com
 Tags: woocommerce, payment, gateway, credit card, visa, mastercard
 Requires at least: 3.5
-Tested up to: 3.8.1
+Tested up to: 3.9
 Stable tag: 1.0.10 
 License: GPLv3 or later
 License URI: http://www.gnu.org/licenses/gpl-3.0.html
@@ -44,7 +44,7 @@ Once the PayHub plugin is installed, in WordPress Admin:
 * For WooCommerce 2.0.x, click on the Payment tab.  For WooCommerce 2.1.x, click on the Checkout Tab.
 * Select PayHub as the default payment processor and save the changes.
 * Click on PayHub Settings button.
-* Enter in your PayHub API credentials n the fields provided.
+* Enter in your PayHub API credentials in the fields provided.
 
 == How to find your API credentials ==
 * Log into the PayHub VirtualHub site (go to http://payhub.com and click on Login in the top left)
